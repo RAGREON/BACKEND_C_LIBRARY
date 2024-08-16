@@ -20,9 +20,9 @@ typedef struct {
     int BUFFER_SIZE;
 
     WSADATA wsa_data;
-    SOCKET server_socket;
+    SOCKET server_socket, client_socket;
 
-    struct sockaddr_in server_addr;
+    struct sockaddr_in server_addr, client_addr;
 } http;
 
 // sets port to passed port
@@ -79,4 +79,46 @@ void initiate_http(http* _http) {
         WSACleanup();
         R_EF;
     }
+}
+
+int accept_connection(http* _http) {
+    int client_addr_len = sizeof(_http->client_addr);
+
+    _http->client_socket = accept(_http->server_socket, (struct sockaddr *)&_http->client_addr, &client_addr_len);
+    if (_http->client_socket == INVALID_SOCKET) {
+        WSA_ERROR("Accept failed");
+        return 2;
+    }
+
+    return 0;
+}
+
+void handle_client(http* _http) {
+    char buffer[_http->BUFFER_SIZE];
+    int bytes_received;
+
+    bytes_received = recv(_http->client_socket, buffer, _http->BUFFER_SIZE - 1, 0);
+    if (bytes_received == SOCKET_ERROR) {
+        WSA_ERROR("recv failed");
+        closesocket(_http->client_socket);
+        return;
+    }
+
+    buffer[bytes_received] = '\0';
+    printf("Received reques: \n%s\n", buffer);
+
+    const char* response = 
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Type: text/html\r\n"
+            "Content-Length: 42\r\n"
+            "\r\n"
+            "<html><body><h1>Hello, World!</h1></body></html>";
+
+    send(_http->client_socket, response, strlen(response), 0);
+    closesocket(_http->client_socket);
+}
+
+void close_http(http* _http) {
+    closesocket(_http->server_socket);
+    WSACleanup();
 }
