@@ -16,13 +16,13 @@
 // high level abstraction 
 
 typedef struct {
-    int PORT;
-    int BUFFER_SIZE;
+    int                 PORT;
+    int                 BUFFER_SIZE;
 
-    WSADATA wsa_data;
-    SOCKET server_socket, client_socket;
+    WSADATA             wsa_data;
+    SOCKET              server_socket, client_socket;
 
-    struct sockaddr_in server_addr, client_addr;
+    struct sockaddr_in  server_addr, client_addr;
 } http;
 
 // sets port to passed port
@@ -81,6 +81,10 @@ void initiate_http(http* _http) {
     }
 }
 
+// accepts incoming connection
+// if connection is success it returns 0
+// else returns 2
+
 int accept_connection(http* _http) {
     int client_addr_len = sizeof(_http->client_addr);
 
@@ -92,6 +96,8 @@ int accept_connection(http* _http) {
 
     return 0;
 }
+
+// handles incoming client's requests
 
 void handle_client(http* _http) {
     char buffer[_http->BUFFER_SIZE];
@@ -105,7 +111,7 @@ void handle_client(http* _http) {
     }
 
     buffer[bytes_received] = '\0';
-    printf("Received reques: \n%s\n", buffer);
+    printf("Received request: \n%s\n", buffer);
 
     const char* response = 
             "HTTP/1.1 200 OK\r\n"
@@ -117,6 +123,8 @@ void handle_client(http* _http) {
     send(_http->client_socket, response, strlen(response), 0);
     closesocket(_http->client_socket);
 }
+
+// Closes our http server
 
 void close_http(http* _http) {
     closesocket(_http->server_socket);
