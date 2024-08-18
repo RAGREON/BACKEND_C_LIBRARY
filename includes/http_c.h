@@ -116,9 +116,9 @@ void handle_client(http* _http) {
     const char* response = 
             "HTTP/1.1 200 OK\r\n"
             "Content-Type: text/html\r\n"
-            "Content-Length: 42\r\n"
+            "Content-Length: 80\r\n"
             "\r\n"
-            "<html><body><h1>Hello, World!</h1></body></html>";
+            "<html><body><h1>Hello, World! Hello from the server</h1></body></html>";
 
     send(_http->client_socket, response, strlen(response), 0);
     closesocket(_http->client_socket);
