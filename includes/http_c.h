@@ -1,3 +1,6 @@
+#ifndef HTTP_C
+#define HTTP_C
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,67 +19,39 @@
 // high level abstraction 
 
 typedef struct {
-    int PORT;
-    int BUFFER_SIZE;
+    int                 PORT;
+    int                 BUFFER_SIZE;
 
-    WSADATA wsa_data;
-    SOCKET server_socket;
+    WSADATA             wsa_data;
+    SOCKET              server_socket, client_socket;
 
-    struct sockaddr_in server_addr;
+    struct sockaddr_in  server_addr, client_addr;
 } http;
 
 // sets port to passed port
 
-void set_port(http* _http, int PORT) {
-    _http->PORT = PORT;
-}
+void set_port(http* _http, int PORT);
 
 // sets buffer size to passed buffer size
 
-void set_buffer_size(http* _http, int BUFFER_SIZE) {
-    _http->BUFFER_SIZE = BUFFER_SIZE;
-}
+void set_buffer_size(http* _http, int BUFFER_SIZE);
 
 // initiates our http server
 
-void initiate_http(http* _http) {
-    // Starting up winshock api
+void initiate_http(http* _http);
 
-    if (WSAStartup(MAKEWORD(2,2), &_http->wsa_data) != 0) {
-        WSA_ERROR("WSAStartup failed");
-        R_EF;
-    }
+// accepts incoming connection
+// if connection is success it returns 0
+// else returns 2
 
-    // creating server socket, ipv4
+int accept_connection(http* _http);
 
-    _http->server_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (_http->server_socket == INVALID_SOCKET) {
-        WSA_ERROR("Socket creation failed");
-        WSACleanup();
-        R_EF;
-    }
+// handles incoming client's requests
 
-    // configuring server address
+void handle_client(http* _http);
 
-    _http->server_addr.sin_family = AF_INET;
-    _http->server_addr.sin_addr.s_addr = INADDR_ANY;
-    _http->server_addr.sin_port = htons(_http->PORT);
+// Closes our http server
 
-    // binding server address to server socket
+void close_http(http* _http);
 
-    if (bind(_http->server_socket, (struct sockaddr *)&_http->server_addr, sizeof(_http->server_addr)) == SOCKET_ERROR) {
-        WSA_ERROR("Bind failed");
-        closesocket(_http->server_socket);
-        WSACleanup();
-        R_EF;
-    }
-
-    // listening to incoming connections
-
-    if (listen(_http->server_socket, SOMAXCONN) == SOCKET_ERROR) {
-        WSA_ERROR("Listen failed");
-        closesocket(_http->server_socket);
-        WSACleanup();
-        R_EF;
-    }
-}
+#endif
